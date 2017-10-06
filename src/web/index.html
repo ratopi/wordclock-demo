@@ -2,7 +2,16 @@
 <head>
 	<title>Wordclock Demo</title>
 	<meta charset="UTF-8">
+
+
+	<link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet">
+
 	<style>
+		* {
+			font-family: 'Work Sans', sans-serif;
+			font-size: 36pt;
+		}
+
 		#board td {
 			text-align: center;
 			color: #ddd;
@@ -27,8 +36,8 @@
 			"ES.IST.FÜNF", // 0 ..
 			"ZEHNVIERTEL", // 11 ..
 			"VORSYNCNACH", // 22 ..
-			"HALB.EINS..", // 33 ..
-			"ZWEIDREIELF", // 44 ..
+			"HALB.ZWEINS", // 33 ..
+			"....DREIELF", // 44 ..
 			"VIERACHT...", // 55 ..
 			"SECHSIEBEN.", // 66 ..
 			"ZWÖLFÜNF...", // 77 ..
@@ -45,9 +54,9 @@
 			"SYNC": [ 25, 28 ],
 			"NACH": [ 29, 32 ],
 			"HALB": [ 33, 36 ],
-			"h1-": [ 38, 40 ],
-			"h1": [ 38, 41 ],
-			"h2": [ 44, 47 ],
+			"h1-": [ 40, 42 ],
+			"h1": [ 40, 43 ],
+			"h2": [ 38, 41 ],
 			"h3": [ 48, 51 ],
 			"h4": [ 55, 58 ],
 			"h5": [ 81, 84 ],
@@ -131,12 +140,31 @@
 
 		function testLoop()
 		{
-			Object.keys( words ).forEach(
-				function ( word )
+			var showNextKey = function ( keys )
+			{
+				if ( keys.length == 0 )
 				{
-					switchWordOn( word );
+					showTime();
 				}
-			)
+				else
+				{
+					var word = keys.pop();
+					switchAllOff();
+					switchWordOn( word );
+
+					setTimeout(
+						function ()
+						{
+							showNextKey( keys );
+						},
+						40
+					);
+				}
+			};
+
+			var keys = Object.keys( words );
+
+			showNextKey( keys );
 		}
 
 		function showTime()
@@ -173,7 +201,7 @@
 
 		testLoop();
 
-		showTime();
+		// showTime();
 	}
 
 	wordclock();
