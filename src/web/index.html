@@ -1,0 +1,184 @@
+<html>
+<head>
+	<title>Wordclock Demo</title>
+	<meta charset="UTF-8">
+	<style>
+		#board td {
+			text-align: center;
+			color: #ddd;
+		}
+
+		#board td.on {
+			color: #000;
+		}
+	</style>
+</head>
+<body>
+<table id="board"></table>
+</body>
+
+
+<script>
+	function wordclock()
+	{
+		var table = document.getElementById( "board" );
+
+		var text = [
+			"ES.IST.FÜNF", // 0 ..
+			"ZEHNVIERTEL", // 11 ..
+			"VORSYNCNACH", // 22 ..
+			"HALB.EINS..", // 33 ..
+			"ZWEIDREI...", // 44 ..
+			"VIERFÜNF...", // 55 ..
+			"SECHSIEBEN.", // 66 ..
+			"ACHTZWÖLF..", // 77 ..
+			"ZEHNEUNELF.", // 88 ..
+			"........UHR"  // 99 ..
+		];
+
+		var words = {
+			"ES": [ 0, 1 ],
+			"IST": [ 3, 5 ],
+			"FÜNF": [ 7, 10 ],
+			"ZEHN": [ 11, 14 ],
+			"VIERTEL": [ 15, 21 ],
+			"VOR": [ 22, 24 ],
+			"SYNC": [ 25, 28 ],
+			"NACH": [ 29, 32 ],
+			"HALB": [ 33, 36 ],
+			"h1*": [ 38, 40 ],
+			"h1": [ 38, 41 ],
+			"h2": [ 44, 47 ],
+			"h3": [ 48, 51 ],
+			"h4": [ 55, 58 ],
+			"h5": [ 59, 62 ],
+			"h6": [ 66, 70 ],
+			"h7": [ 70, 75 ],
+			"h8": [ 77, 80 ],
+			"h12": [ 81, 85 ],
+			"h10": [ 88, 91 ],
+			"h9": [ 91, 94 ],
+			"h11": [ 95, 97 ],
+			"UHR": [ 107, 109 ]
+		};
+
+		var defin = {
+			"0": [ "UHR" ],
+			"1": [ "FÜNF", "NACH" ],
+			"2": [ "ZEHN", "NACH" ],
+			"3": [ "VIERTEL", "NACH" ],
+			"4": [ "ZEHN", "VOR", "HALB" ],
+			"5": [ "FÜNF", "VOR", "HALB" ],
+			"6": [ "HALB" ],
+			"7": [ "FÜNF", "NACH", "HALB" ],
+			"8": [ "ZEHN", "NACH", "HALB" ],
+			"9": [ "VIERTEL", "VOR" ],
+			"10": [ "ZEHN", "VOR" ],
+			"11": [ "FÜNF", "VOR" ]
+		};
+
+		function switchAllOff()
+		{
+			table.querySelectorAll( "td" ).forEach(
+				function ( x )
+				{
+					x.className = "";
+				}
+			)
+		}
+
+		function switchWordOn( word )
+		{
+			console.log( "on : " + word );
+			var def = words[ word ];
+
+			for ( var i = def[ 0 ]; i <= def[ 1 ]; i ++ )
+			{
+				document.getElementById( "l" + i ).className = "on";
+			}
+		}
+
+
+		function buildBoard()
+		{
+			var cell = 0;
+
+			text.forEach(
+				function ( line )
+				{
+					var tr;
+
+					function createCells( line )
+					{
+						Array.from( line ).forEach(
+							function ( ch )
+							{
+								td = document.createElement( "td" );
+								td.setAttribute( "id", "l" + cell );
+								td.appendChild( document.createTextNode( ch ) );
+								tr.appendChild( td );
+
+								cell ++;
+							}
+						)
+					}
+
+					tr = document.createElement( "tr" );
+					createCells( line );
+					table.appendChild( tr );
+				}
+			);
+		}
+
+		function testLoop()
+		{
+			Object.keys( words ).forEach(
+				function ( word )
+				{
+					switchWordOn( word );
+				}
+			)
+		}
+
+		function showTime()
+		{
+			switchAllOff();
+
+			var now = new Date();
+			var hours = now.getHours();
+			var minutes = now.getMinutes();
+			var min5 = Math.floor( minutes / 5 );
+
+			if ( min5 > 3 ) hours ++;
+			hours = hours % 12;
+			if ( hours == 0 ) hours = 12;
+
+			switchWordOn( "ES" );
+			switchWordOn( "IST" );
+
+			switchWordOn( "h" + hours );
+
+			defin[ min5 ].forEach(
+				function ( word )
+				{
+					switchWordOn( word );
+				}
+			);
+
+			setTimeout( showTime, 1000 );
+		}
+
+		buildBoard();
+
+		switchAllOff();
+
+		testLoop();
+
+		showTime();
+	}
+
+	wordclock();
+
+</script>
+
+</html>
