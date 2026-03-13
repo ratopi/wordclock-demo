@@ -28,63 +28,77 @@
 
 
 <script>
+
+	/**
+	 * Initialisiert und steuert die Wordclock.
+	 * Baut das Buchstabenraster auf, testet alle Wörter und zeigt dann die aktuelle Uhrzeit an.
+	 */
 	function wordclock()
 	{
 		var table = document.getElementById( "board" );
 
+		// Das Buchstabenraster der Wordclock – jede Zeile hat 11 Zeichen.
+		// Die Positionen werden fortlaufend durchnummeriert (0–98).
+		// Punkte sind Platzhalter ohne Bedeutung.
 		var text = [
-			"ES.IST.FÜNF", // 0 ..
-			"ZEHNVIERTEL", // 11 ..
-			"VORSYNCNACH", // 22 ..
-			"HALB.ZWEINS", // 33 ..
-			"....DREIELF", // 44 ..
-			"VIERACHT...", // 55 ..
-			"SECHSIEBEN.", // 66 ..
-			"ZWÖLFÜNF...", // 77 ..
-			"ZEHNEUN.UHR"  // 88 ..
+			"ES.IST.FÜNF", // Position  0 – 10  (Zeile 0, eigentlich 11 Zeichen + 1 Punkt-Trenner)
+			"ZEHNVIERTEL", // Position 11 – 21
+			"VORSYNCNACH", // Position 22 – 32  ("SYNC" ist ein verstecktes Easter-Egg-Wort)
+			"HALB.ZWEINS", // Position 33 – 43  ("ZWEINS" enthält sowohl "ZWEI" als auch "EINS")
+			"....DREIELF", // Position 44 – 54
+			"VIERACHT...", // Position 55 – 65  ("VIERACHT" enthält "VIER" und "ACHT")
+			"SECHSIEBEN.", // Position 66 – 76  ("SECHSIEBEN" enthält "SECHS" und "SIEBEN", teilen sich das "S")
+			"ZWÖLFÜNF...", // Position 77 – 87  ("ZWÖLFÜNF" enthält "ZWÖLF" und "FÜNF", teilen sich das "F")
+			"ZEHNEUN.UHR"  // Position 88 – 98  ("ZEHNEUN" enthält "ZEHN" und "NEUN")
 		];
 
+		// Wort-Definitionen: Zuordnung von Wörtern zu Start- und End-Positionen im Raster.
+		// "hN" = Stunde N, "h1-" = "EIN" (ohne S, für "EIN UHR")
 		var words = {
 			"ES": [ 0, 1 ],
 			"IST": [ 3, 5 ],
-			"FÜNF": [ 7, 10 ],
-			"ZEHN": [ 11, 14 ],
+			"FÜNF": [ 7, 10 ],       // Minuten-FÜNF (oben)
+			"ZEHN": [ 11, 14 ],      // Minuten-ZEHN
 			"VIERTEL": [ 15, 21 ],
 			"VOR": [ 22, 24 ],
-			"SYNC": [ 25, 28 ],
+			"SYNC": [ 25, 28 ],      // Easter Egg – wird nur im Testlauf sichtbar
 			"NACH": [ 29, 32 ],
 			"HALB": [ 33, 36 ],
-			"h1-": [ 40, 42 ],
-			"h1": [ 40, 43 ],
-			"h2": [ 38, 41 ],
-			"h3": [ 48, 51 ],
-			"h4": [ 55, 58 ],
-			"h5": [ 81, 84 ],
-			"h6": [ 66, 70 ],
-			"h7": [ 70, 75 ],
-			"h8": [ 59, 62 ],
-			"h9": [ 91, 94 ],
-			"h11": [ 52, 54 ],
-			"h10": [ 88, 91 ],
-			"h12": [ 77, 81 ],
+			"h1-": [ 40, 42 ],       // "EIN" (ohne S) – für "ES IST EIN UHR"
+			"h1": [ 40, 43 ],        // "EINS" – für z.B. "FÜNF NACH EINS"
+			"h2": [ 38, 41 ],        // "ZWEI"
+			"h3": [ 48, 51 ],        // "DREI"
+			"h4": [ 55, 58 ],        // "VIER"
+			"h5": [ 81, 84 ],        // "FÜNF" (Stunde, unten)
+			"h6": [ 66, 70 ],        // "SECHS"
+			"h7": [ 70, 75 ],        // "SIEBEN"
+			"h8": [ 59, 62 ],        // "ACHT"
+			"h9": [ 91, 94 ],        // "NEUN"
+			"h11": [ 52, 54 ],       // "ELF"
+			"h10": [ 88, 91 ],       // "ZEHN" (Stunde)
+			"h12": [ 77, 81 ],       // "ZWÖLF"
 			"UHR": [ 96, 98 ]
 		};
 
+		// Minutendefinitionen: Welche Wörter bei welchem 5-Minuten-Schritt leuchten.
+		// Der Schlüssel ist Math.floor(minuten / 5).
+		// Ab min5 > 3 wird die Stunde um 1 erhöht (weil "VOR HALB" sich auf die nächste Stunde bezieht).
 		var defin = {
-			"0": [ "UHR" ],
-			"1": [ "FÜNF", "NACH" ],
-			"2": [ "ZEHN", "NACH" ],
-			"3": [ "VIERTEL", "NACH" ],
-			"4": [ "ZEHN", "VOR", "HALB" ],
-			"5": [ "FÜNF", "VOR", "HALB" ],
-			"6": [ "HALB" ],
-			"7": [ "FÜNF", "NACH", "HALB" ],
-			"8": [ "ZEHN", "NACH", "HALB" ],
-			"9": [ "VIERTEL", "VOR" ],
-			"10": [ "ZEHN", "VOR" ],
-			"11": [ "FÜNF", "VOR" ]
+			"0": [ "UHR" ],                       //  :00 → "ES IST ... UHR"
+			"1": [ "FÜNF", "NACH" ],              //  :05 → "FÜNF NACH ..."
+			"2": [ "ZEHN", "NACH" ],              //  :10 → "ZEHN NACH ..."
+			"3": [ "VIERTEL", "NACH" ],           //  :15 → "VIERTEL NACH ..."
+			"4": [ "ZEHN", "VOR", "HALB" ],       //  :20 → "ZEHN VOR HALB ..."
+			"5": [ "FÜNF", "VOR", "HALB" ],       //  :25 → "FÜNF VOR HALB ..."
+			"6": [ "HALB" ],                       //  :30 → "HALB ..."
+			"7": [ "FÜNF", "NACH", "HALB" ],      //  :35 → "FÜNF NACH HALB ..."
+			"8": [ "ZEHN", "NACH", "HALB" ],      //  :40 → "ZEHN NACH HALB ..."
+			"9": [ "VIERTEL", "VOR" ],             //  :45 → "VIERTEL VOR ..."
+			"10": [ "ZEHN", "VOR" ],               //  :50 → "ZEHN VOR ..."
+			"11": [ "FÜNF", "VOR" ]                //  :55 → "FÜNF VOR ..."
 		};
 
+		/** Schaltet alle Buchstaben im Raster aus (dunkel). */
 		function switchAllOff()
 		{
 			table.querySelectorAll( "td" ).forEach(
@@ -95,6 +109,7 @@
 			)
 		}
 
+		/** Schaltet ein bestimmtes Wort ein (hell), indem alle zugehörigen Zellen die CSS-Klasse "on" bekommen. */
 		function switchWordOn( word )
 		{
 			console.log( "on : " + word );
@@ -106,7 +121,10 @@
 			}
 		}
 
-
+		/**
+		 * Baut die HTML-Tabelle aus dem text-Array auf.
+		 * Jeder Buchstabe wird eine eigene Tabellenzelle (<td>) mit einer fortlaufenden ID ("l0", "l1", ...).
+		 */
 		function buildBoard()
 		{
 			var cell = 0;
@@ -138,12 +156,17 @@
 			);
 		}
 
+		/**
+		 * Testschleife: Zeigt nacheinander jedes definierte Wort kurz an (40ms pro Wort),
+		 * um zu prüfen, ob alle Positionen korrekt sind. Startet danach die Uhrzeitanzeige.
+		 */
 		function testLoop()
 		{
 			var showNextKey = function ( keys )
 			{
 				if ( keys.length == 0 )
 				{
+					// Alle Wörter durchlaufen → jetzt die echte Uhrzeit anzeigen
 					showTime();
 				}
 				else
@@ -152,6 +175,7 @@
 					switchAllOff();
 					switchWordOn( word );
 
+					// Nächstes Wort nach 40ms anzeigen
 					setTimeout(
 						function ()
 						{
@@ -167,6 +191,16 @@
 			showNextKey( keys );
 		}
 
+		/**
+		 * Zeigt die aktuelle Uhrzeit als Wordclock-Text an.
+		 * Wird jede Sekunde erneut aufgerufen, um die Anzeige aktuell zu halten.
+		 *
+		 * Logik:
+		 * 1. Minuten werden auf 5er-Schritte abgerundet (min5 = 0..11)
+		 * 2. Ab min5 > 3 (also ab :20) bezieht sich die Anzeige auf die nächste Stunde → hours++
+		 * 3. 24h-Format wird auf 12h umgerechnet (0 → 12)
+		 * 4. Sonderfall: Um 1:00 wird "EIN UHR" statt "EINS UHR" angezeigt
+		 */
 		function showTime()
 		{
 			switchAllOff();
@@ -174,24 +208,26 @@
 			var now = new Date();
 			var hours = now.getHours();
 			var minutes = now.getMinutes();
-			var min5 = Math.floor( minutes / 5 );
+			var min5 = Math.floor( minutes / 5 );  // 5-Minuten-Schritt (0–11)
 
-			if ( min5 > 3 ) hours ++;
-			hours = hours % 12;
-			if ( hours == 0 ) hours = 12;
+			if ( min5 > 3 ) hours ++;     // Ab "ZEHN VOR HALB" wird die nächste Stunde verwendet
+			hours = hours % 12;           // 24h → 12h Format
+			if ( hours == 0 ) hours = 12; // Mitternacht/Mittag → 12
 
 			switchWordOn( "ES" );
 			switchWordOn( "IST" );
 
+			// Sonderfall: "EIN UHR" statt "EINS UHR"
 			if ( hours == 1 && min5 == 0 )
 			{
-				switchWordOn( "h1-" );
+				switchWordOn( "h1-" );    // "EIN" (ohne S)
 			}
 			else
 			{
 				switchWordOn( "h" + hours );
 			}
 
+			// Minutenwörter einschalten (z.B. "FÜNF", "NACH", "HALB")
 			defin[ min5 ].forEach(
 				function ( word )
 				{
@@ -199,18 +235,20 @@
 				}
 			);
 
+			// Jede Sekunde aktualisieren
 			setTimeout( showTime, 1000 );
 		}
 
-		buildBoard();
+		// --- Start ---
 
-		switchAllOff();
+		buildBoard();       // Buchstabenraster aufbauen
+		switchAllOff();     // Alle Buchstaben zunächst ausschalten
+		testLoop();         // Testlauf starten (zeigt danach automatisch die Uhrzeit)
 
-		testLoop();
-
-		// showTime();
+		// showTime();      // Alternative: Uhrzeit direkt anzeigen (ohne Testlauf)
 	}
 
+	// Wordclock starten
 	wordclock();
 
 </script>
