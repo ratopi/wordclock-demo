@@ -3,4 +3,4 @@
 Da ich plane mit dem Arduino eine Wordclock zu bauen, wollte ich vorher testen, welches 
 Buchstabenmuster und welches Verfahren am Besten wirkt.
 
-http://ratopi.github.io/wordclock-demo/src/web/index.html
+http://ratopi.github.io/wordclock-demo/
