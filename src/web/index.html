@@ -3,7 +3,6 @@
 	<title>Wordclock Demo</title>
 	<meta charset="UTF-8">
 
-
 	<link href="https://fonts.googleapis.com/css?family=Work+Sans" rel="stylesheet">
 
 	<style>
@@ -68,7 +67,7 @@
 			"h9": [ 91, 94 ],
 			"h11": [ 52, 54 ],
 			"h10": [ 88, 91 ],
-			"h12": [ 81, 85 ],
+			"h12": [ 77, 81 ],
 			"UHR": [ 96, 98 ]
 		};
 
@@ -185,7 +184,14 @@
 			switchWordOn( "ES" );
 			switchWordOn( "IST" );
 
-			switchWordOn( "h" + hours );
+			if ( hours == 1 && min5 == 0 )
+			{
+				switchWordOn( "h1-" );
+			}
+			else
+			{
+				switchWordOn( "h" + hours );
+			}
 
 			defin[ min5 ].forEach(
 				function ( word )
